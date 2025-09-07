@@ -1,0 +1,420 @@
+openapi: 3.0.0
+info:
+  title: Library Management System API
+  description: A simple REST API for managing library books and user operations
+  version: 1.0.0
+  contact:
+    name: Library Management System
+    email: admin@library.com
+
+servers:
+  - url: http://localhost:5000
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Book:
+      type: object
+      required:
+        - title
+        - author
+        - isbn
+        - genre
+        - publishedYear
+        - totalCopies
+        - description
+      properties:
+        _id:
+          type: string
+          description: Book ID
+        title:
+          type: string
+          description: Book title
+        author:
+          type: string
+          description: Book author
+        isbn:
+          type: string
+          description: ISBN number
+        genre:
+          type: string
+          description: Book genre
+        publishedYear:
+          type: number
+          description: Publication year
+        totalCopies:
+          type: number
+          description: Total number of copies
+        availableCopies:
+          type: number
+          description: Available copies for borrowing
+        description:
+          type: string
+          description: Book description
+        coverImage:
+          type: string
+          description: Book cover image URL
+        addedBy:
+          type: string
+          description: User ID who added the book
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [Admin, Member]
+        borrowedBooks:
+          type: array
+          items:
+            type: object
+            properties:
+              book:
+                type: string
+                description: Book ID
+              borrowDate:
+                type: string
+                format: date-time
+              dueDate:
+                type: string
+                format: date-time
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          description: Error message
+
+paths:
+  /api/books:
+    get:
+      summary: Get all books
+      description: Fetch all available books with optional search and filtering
+      parameters:
+        - name: search
+          in: query
+          description: Search by title or author
+          schema:
+            type: string
+        - name: genre
+          in: query
+          description: Filter by genre
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: number
+            default: 1
+        - name: limit
+          in: query
+          description: Number of books per page
+          schema:
+            type: number
+            default: 12
+      responses:
+        '200':
+          description: Books retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  books:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Book'
+                  total:
+                    type: number
+                  page:
+                    type: number
+                  pages:
+                    type: number
+
+    post:
+      summary: Add new book (Admin only)
+      description: Add a new book to the library
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - author
+                - isbn
+                - genre
+                - publishedYear
+                - totalCopies
+                - description
+              properties:
+                title:
+                  type: string
+                  example: "The Great Gatsby"
+                author:
+                  type: string
+                  example: "F. Scott Fitzgerald"
+                isbn:
+                  type: string
+                  example: "9780743273565"
+                genre:
+                  type: string
+                  example: "Fiction"
+                publishedYear:
+                  type: number
+                  example: 1925
+                totalCopies:
+                  type: number
+                  example: 5
+                description:
+                  type: string
+                  example: "A classic American novel"
+                coverImage:
+                  type: string
+                  example: ""
+      responses:
+        '201':
+          description: Book added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Book added successfully"
+                  data:
+                    type: object
+                    properties:
+                      book:
+                        $ref: '#/components/schemas/Book'
+        '400':
+          description: Bad request (duplicate ISBN, validation errors)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (Admin access required)
+
+  /api/books/my-books:
+    get:
+      summary: Get user's borrowed books
+      description: Retrieve all books borrowed by the authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Borrowed books retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  borrowedBooks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        book:
+                          $ref: '#/components/schemas/Book'
+                        borrowDate:
+                          type: string
+                          format: date-time
+                        dueDate:
+                          type: string
+                          format: date-time
+                  totalBorrowed:
+                    type: number
+        '401':
+          description: Unauthorized
+
+  /api/books/{id}/borrow:
+    post:
+      summary: Borrow a book
+      description: Borrow a book by its ID (updates availability status)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Book ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Book borrowed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Book borrowed successfully"
+                  data:
+                    type: object
+                    properties:
+                      book:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          title:
+                            type: string
+                          author:
+                            type: string
+                          dueDate:
+                            type: string
+                            format: date-time
+        '400':
+          description: Book not available or already borrowed
+        '401':
+          description: Unauthorized
+        '404':
+          description: Book not found
+
+  /api/books/{id}/return:
+    post:
+      summary: Return a book
+      description: Return a borrowed book by its ID (updates availability status)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Book ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Book returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Book returned successfully"
+        '400':
+          description: Book not borrowed by user
+        '401':
+          description: Unauthorized
+        '404':
+          description: Book not found
+
+  /api/auth/register:
+    post:
+      summary: Register new user
+      description: Create a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  example: "john@example.com"
+                password:
+                  type: string
+                  example: "password123"
+                role:
+                  type: string
+                  enum: [Admin, Member]
+                  default: Member
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          description: User already exists or validation errors
+
+  /api/auth/login:
+    post:
+      summary: Login user
+      description: Authenticate user and receive JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: "john@example.com"
+                password:
+                  type: string
+                  example: "password123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  token:
+                    type: string
+                    description: JWT token
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
