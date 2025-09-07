@@ -27,7 +27,7 @@ export default function Home() {
       if (searchTerm) params.append('search', searchTerm)
       if (selectedGenre && selectedGenre !== 'All') params.append('genre', selectedGenre)
 
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/books?${params}`)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://library-management-backend-green.vercel.app'}/api/books?${params}`)
       
       if (response.data.success) {
         setBooks(response.data.books || [])
@@ -65,7 +65,7 @@ export default function Home() {
 
     setActionLoading(bookId)
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/books/${bookId}/borrow`)
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'https://library-management-backend-green.vercel.app'}/api/books/${bookId}/borrow`)
       
       if (response.data.success) {
         showNotification('Book borrowed successfully! 📚')
@@ -83,7 +83,7 @@ export default function Home() {
   const handleReturn = async (bookId) => {
     setActionLoading(bookId)
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/books/${bookId}/return`)
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'https://library-management-backend-green.vercel.app'}/api/books/${bookId}/return`)
       
       if (response.data.success) {
         showNotification('Book returned successfully! ✅')

@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/me`)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://library-management-backend-green.vercel.app'}/api/auth/me`)
       if (response.data.success) {
         setUser(response.data.data.user)
       }
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/login`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'https://library-management-backend-green.vercel.app'}/api/auth/login`, {
         email,
         password
       })
@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password, role = 'Member') => {
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/register`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'https://library-management-backend-green.vercel.app'}/api/auth/register`, {
         name,
         email,
         password,

@@ -27,7 +27,7 @@ export default function MyBooks() {
   const fetchMyBooks = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/books/my-books`)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://library-management-backend-green.vercel.app'}/api/books/my-books`)
       
       if (response.data.success) {
         setBorrowedBooks(response.data.borrowedBooks || [])
@@ -50,7 +50,7 @@ export default function MyBooks() {
   const handleReturn = async (bookId) => {
     setActionLoading(bookId)
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/books/${bookId}/return`)
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'https://library-management-backend-green.vercel.app'}/api/books/${bookId}/return`)
       
       if (response.data.success) {
         showNotification('Book returned successfully! ✅')
